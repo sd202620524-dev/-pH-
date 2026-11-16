@@ -152,3 +152,9 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+*********온습도 센서 연결 코드
+from machine import Pin, I2C
+
+i2c = I2C(0, sda=Pin(8), scl=Pin(9), freq=100000)
+print("발견된 주소:", [hex(addr) for addr in i2c.scan()])

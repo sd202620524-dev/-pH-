@@ -158,3 +158,90 @@ from machine import Pin, I2C
 
 i2c = I2C(0, sda=Pin(8), scl=Pin(9), freq=100000)
 print("발견된 주소:", [hex(addr) for addr in i2c.scan()])
+
+
+------------------------------------------------------------------
+피부온습도 측정 코드
+
+from machine import Pin, SoftI2C
+import time
+
+ADDRESS = 0x44
+
+MIN_TEMP = 31.0
+MAX_TEMP = 32.0
+
+
+def crc8(data):
+    """수신 데이터 오류 검사"""
+    crc = 0xFF
+
+    for value in data:
+        crc ^= value
+
+        for _ in range(8):
+            if crc & 0x80:
+                crc = ((crc << 1) ^ 0x31) & 0xFF
+            else:
+                crc = (crc << 1) & 0xFF
+
+    return crc
+
+
+def read_sht40(i2c):
+    # SHT40 고정밀 온습도 측정 시작
+    i2c.writeto(ADDRESS, bytes([0xFD]))
+    time.sleep_ms(20)
+
+    data = i2c.readfrom(ADDRESS, 6)
+
+    if (crc8(data[:2]) != data[2]
+            or crc8(data[3:5]) != data[5]):
+        raise ValueError("CRC error")
+
+    raw_t = (data[0] << 8) | data[1]
+    raw_h = (data[3] << 8) | data[4]
+
+    temperature = -45 + 175 * raw_t / 65535
+    humidity = -6 + 125 * raw_h / 65535
+    humidity = max(0.0, min(100.0, humidity))
+
+    return temperature, humidity
+
+
+def format_reading(temperature, humidity):
+    text = "측정 온도: {:.2f}℃ | 상대습도: {:.2f}%RH".format(
+        temperature, humidity
+    )
+
+    if MIN_TEMP <= temperature <= MAX_TEMP:
+        text += " | 이상적인 피부 온도에 도달했습니다!"
+
+    return text
+
+
+def main():
+    i2c = SoftI2C(
+    sda=Pin(8),
+    scl=Pin(9),
+    freq=50000,
+    timeout=100000
+)
+    time.sleep_ms(100)
+
+    while True:
+        try:
+            temperature, humidity = read_sht40(i2c)
+            print(format_reading(temperature, humidity))
+
+        except (OSError, ValueError) as error:
+            print("측정 오류: {}".format(error))
+
+        time.sleep_ms(1000)
+
+
+if __name__ == "__main__":
+    main()
+
+
+------------------------------------------

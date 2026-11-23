@@ -1,3 +1,5 @@
+pH 센서-LED 센서 코드
+
 # ph_led.py
 # Grove - PH Sensor Kit (E-201C-Blue), SKU 110020291
 # Raspberry Pi Pico / MicroPython

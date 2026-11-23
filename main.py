@@ -10,7 +10,7 @@ import time
 
 ADC_REF = 3.3
 BUFFER_ACID = 4.00
-BUFFER_ALKALI = 10.00  # 표준용액 병에 표시된 값에 맞게 수정
+BUFFER_ALKALI = 7.00  # 표준용액 병에 표시된 값에 맞게 수정
 
 # 아래는 프로젝트용 구간이며 화학적 산/염기 강도 분류가 아닙니다.
 ACID_MIN = 4.5
